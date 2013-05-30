@@ -4,14 +4,14 @@ class JubatusOutput < Output
   config_param :host, :string, :default => '127.0.0.1'
   config_param :port, :string, :default => '9199'
   config_param :name, :string, :default => ''
-  config_param :str_keys, :string, :defult => ''
-  config_param :num_keys, :string
+  config_param :str_keys, :string, :default => ''
+  config_param :num_keys, :string, :default => ''
+  config_param :learn_analyze, :string, :default => 'analyze'
+  config_param :tag, :string, :default => 'jubatus'
 
   def initialize
     require 'jubatus/classifier/client'
     require 'jubatus/classifier/types'
-    @type = 'classifier'
-    @learn_analyze = 'analyze'
     super
   end
 
@@ -23,7 +23,7 @@ class JubatusOutput < Output
 
   def start
     super
-    @jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @host.to_i)
+    @jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
   end
 
   def shutdown
@@ -32,20 +32,15 @@ class JubatusOutput < Output
 
   def emit(tag, es, chain)
     es.each do |time, record|
-      jubatus_run(record)
+      Engine.emit(@tag, time, jubatus_run(record))
     end
 
     chain.next
   end
 
-  def jubatus_run(key_values)
-    str = []
-    num = []
-    key_values.each do |key, value|
-      str << [key, value] if @str.include?(key)
-      num << [key, value] if @num.include?(key)
-    end
-    datum = Jubatus::Classifier::Datum.new(str, num)
+  private
+  def jubatus_run(data)
+    datum = set_datum(data)
     if @learn_analyze =~ /^analyze$/i
       analyze(datum)
     elsif @learn_analyze =~ /^train$/i
@@ -53,9 +48,8 @@ class JubatusOutput < Output
     end
   end
 
-  private
   def analyze(datum)
-    @jubatus.classifier(@name, [datum])
+    @jubatus.classify(@name, [datum])
   rescue => e
     e
   end
@@ -64,6 +58,16 @@ class JubatusOutput < Output
     @jubatus.train(@name, [datum])
   rescue => e
     e
+  end
+
+  def set_datum(data)
+    str = []
+    num = []
+    data.each do |key, value|
+      str << [key, value] if @str.include?(key)
+      num << [key, value] if @num.include?(key)
+    end
+    Jubatus::Classifier::Datum.new(str, num)
   end
 end
 end
