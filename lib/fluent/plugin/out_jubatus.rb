@@ -23,7 +23,6 @@ class JubatusOutput < Output
 
   def start
     super
-    @jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
   end
 
   def shutdown
@@ -49,13 +48,17 @@ class JubatusOutput < Output
   end
 
   def analyze(datum)
-    @jubatus.classify(@name, [datum])
+    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
+    jubatus.classify(@name, [datum])
+    jubatus.get_client.close
   rescue => e
     e
   end
 
   def update(datum)
-    @jubatus.train(@name, [datum])
+    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
+    jubatus.train(@name, [datum])
+    jubatus.get_client.close
   rescue => e
     e
   end
