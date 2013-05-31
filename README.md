@@ -1,24 +1,28 @@
 # Fluent::Plugin::Jubatus
 
-TODO: Write a gem description
+fluentd pluing for jubatus
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'fluent-plugin-jubatus'
+    gem 'fluent-plugin-jubatus', git: 'http//github.com/katsyoshi/fluent-plugin-jubatus.git'
 
 And then execute:
 
     $ bundle
 
-Or install it yourself as:
-
-    $ gem install fluent-plugin-jubatus
-
 ## Usage
+Configuration file
 
-TODO: Write usage instructions here
+   <match mikutter.timeline>
+     type jubatus
+     host 127.0.0.1        # not necessary (default: 127.0.0.1)
+     port 9199             # not necessary (default: 9199)
+     str_keys string1, string2 # you need to evaluate string value in jubatus
+     num_keys number2, number2 # you need to evaluate number value in jubatus
+     tag jubatus.timeline  # not necessary (default: jubatus)
+   </match>
 
 ## Contributing
 
