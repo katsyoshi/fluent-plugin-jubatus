@@ -13,16 +13,16 @@ And then execute:
     $ bundle
 
 ## Usage
-Configuration file
+Configuration file:
 
-   <match mikutter.timeline>
-     type jubatus
-     host 127.0.0.1        # not necessary (default: 127.0.0.1)
-     port 9199             # not necessary (default: 9199)
-     str_keys string1, string2 # you need to evaluate string value in jubatus
-     num_keys number2, number2 # you need to evaluate number value in jubatus
-     tag jubatus.timeline  # not necessary (default: jubatus)
-   </match>
+    <match mikutter.timeline>
+        type jubatus
+        host 127.0.0.1        # not necessary (default: 127.0.0.1)
+        port 9199             # not necessary (default: 9199)
+        str_keys string1, string2 # you need to evaluate string value in jubatus
+        num_keys number2, number2 # you need to evaluate number value in jubatus
+        tag jubatus.timeline  # not necessary (default: jubatus)
+    </match>
 
 ## Contributing
 
