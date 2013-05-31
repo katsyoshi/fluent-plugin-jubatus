@@ -1,6 +1,7 @@
 module Fluent
 class JubatusOutput < Output
   Plugin.register_output('jubatus', self)
+  config_param :client_api, :string, :default => 'classifier'
   config_param :host, :string, :default => '127.0.0.1'
   config_param :port, :string, :default => '9199'
   config_param :name, :string, :default => ''
@@ -31,7 +32,8 @@ class JubatusOutput < Output
 
   def emit(tag, es, chain)
     es.each do |time, record|
-      Engine.emit(@tag, time, jubatus_run(record))
+      result = result_format(jubatus_run(record))
+      Engine.emit(@tag, time, result)
     end
 
     chain.next
@@ -49,8 +51,9 @@ class JubatusOutput < Output
 
   def analyze(datum)
     jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
-    jubatus.classify(@name, [datum])
+    result = jubatus.classify(@name, [datum])
     jubatus.get_client.close
+    result
   rescue => e
     e
   end
@@ -71,6 +74,18 @@ class JubatusOutput < Output
       num << [key, value] if @num.include?(key)
     end
     Jubatus::Classifier::Datum.new(str, num)
+  end
+
+  def result_format(data)
+    result = {}
+    if @client_api == 'classifier'
+      data.map do |datum|
+        datum.map do |est|
+          result[est[0]] = est[1]
+        end
+      end
+    end
+    result
   end
 end
 end
