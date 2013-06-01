@@ -6,7 +6,7 @@ fluentd pluing for jubatus
 
 Add this line to your application's Gemfile:
 
-    gem 'fluent-plugin-jubatus', git: 'http//github.com/katsyoshi/fluent-plugin-jubatus.git'
+    gem 'fluent-plugin-jubatus', git: 'git://github.com/katsyoshi/fluent-plugin-jubatus.git'
 
 And then execute:
 
