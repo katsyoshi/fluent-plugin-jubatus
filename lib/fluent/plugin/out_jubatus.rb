@@ -11,9 +11,13 @@ class JubatusOutput < Output
   config_param :tag, :string, :default => 'jubatus'
 
   def initialize
+    super
     require 'jubatus/classifier/client'
     require 'jubatus/classifier/types'
-    super
+    require 'jubatus/anomaly/client'
+    require 'jubatus/anomaly/types'
+    require 'jubatus/recommender/client'
+    require 'jubatus/recommender/types'
   end
 
   def configure(conf)
@@ -50,10 +54,14 @@ class JubatusOutput < Output
   end
 
   def analyze(datum)
-    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
-    result = jubatus.classify(@name, [datum])
-    jubatus.get_client.close
-    result
+    case
+    when @client_api =~ /^classif(y|ier)$/i
+      classify(datum)
+    when @client_api =~ /^anomaly$/i
+      anomaly(datum)
+    when @client_api =~ /^recommender/i
+      recommend(datum)
+    end
   rescue => e
     e
   end
@@ -73,18 +81,50 @@ class JubatusOutput < Output
       str << [key, value] if @str.include?(key)
       num << [key, value] if @num.include?(key)
     end
-    Jubatus::Classifier::Datum.new(str, num)
+    case
+    when @client_api =~ /^classif(y|ier)$/i
+      Jubatus::Classifier::Datum.new(str, num)
+    when @client_api =~ /^anomaly$/i
+      Jubatus::Anomaly::Datum.new(str, num)
+    end
   end
 
   def result_format(data)
+    case
+    when @client_api =~ /^classifier$/i
+      result_classify(data)
+    when @client_api =~ /^anomaly$/i
+      result_anomaly(data)
+    end
+  end
+
+  def classify(datum)
+    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
+    result = jubatus.classify(@name, [datum])
+    jubatus.get_client.close()
+    result
+  end
+
+  def anomaly(datum)
+    jubatus = Jubatus::Anomaly::Client::Anomaly.new(@host, @port.to_i)
+    result = jubatus.add(@name, datum)
+    jubatus.get_client.close()
+    result
+  end
+
+  def result_classify(data)
     result = {}
-    if @client_api == 'classifier'
-      data.map do |datum|
-        datum.map do |est|
-          result[est[0]] = est[1]
-        end
+    data.map do |datum|
+      datum.map do |est|
+        result[est[0]] = est[1]
       end
     end
+    result
+  end
+
+  def result_anomaly(data)
+    result = {}
+    result[data[0]] = data[1]
     result
   end
 end
