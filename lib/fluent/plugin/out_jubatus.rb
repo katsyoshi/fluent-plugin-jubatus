@@ -78,8 +78,8 @@ class JubatusOutput < Output
     str = []
     num = []
     data.each do |key, value|
-      str << [key, value] if @str.include?(key)
-      num << [key, value] if @num.include?(key)
+      str << [key, value.to_s] if @str.include?(key)
+      num << [key, value.to_f] if @num.include?(key)
     end
     case
     when @client_api =~ /^classif(y|ier)$/i
@@ -103,6 +103,8 @@ class JubatusOutput < Output
     result = jubatus.classify(@name, [datum])
     jubatus.get_client.close()
     result
+  rescue => e
+    e
   end
 
   def anomaly(datum)
@@ -110,6 +112,8 @@ class JubatusOutput < Output
     result = jubatus.add(@name, datum)
     jubatus.get_client.close()
     result
+  rescue => e
+    e
   end
 
   def result_classify(data)
@@ -123,9 +127,9 @@ class JubatusOutput < Output
   end
 
   def result_anomaly(data)
-    result = {}
-    result[data[0]] = data[1]
-    result
+    value = data[1]
+    value = data[1].to_s if data[1].to_s == "Infinity"
+    { id: data[0], value: value }
   end
 end
 end
