@@ -1,16 +1,14 @@
 # -*- encoding: utf-8 -*-
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'fluent-plugin-jubatus/version'
+$:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name          = "fluent-plugin-jubatus"
-  gem.version       = Fluent::Plugin::Jubatus::VERSION
+  gem.version       = "0.0.2"
   gem.authors       = ["MATSUMOTO Katsuyoshi"]
-  gem.email         = ["matsumoto.katsuyoshi+github@gmail.com"]
-  gem.description   = %q{TODO hoge}
-  gem.summary       = %q{TODO hoge}
-  gem.homepage      = ""
+  gem.email         = ["matsumoto.katsuyoshi+rubygems@gmail.com"]
+  gem.description   = %q{Jubatus output plugin for fluentd}
+  gem.summary       = %q{Jubatus output plugin for fluentd}
+  gem.homepage      = "https://github.com/katsyoshi/fluent-plugin-jubatus"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
