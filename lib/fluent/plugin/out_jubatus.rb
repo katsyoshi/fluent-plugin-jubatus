@@ -67,7 +67,7 @@ class JubatusOutput < Output
   end
 
   def update(datum)
-    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
+    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i, @name)
     jubatus.train(@name, [datum])
     jubatus.get_client.close
   rescue => e
@@ -99,18 +99,18 @@ class JubatusOutput < Output
   end
 
   def classify(datum)
-    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i)
+    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i, @name)
     result = jubatus.classify(@name, [datum])
-    jubatus.get_client.close()
+    jubatus.get_client.close
     result
   rescue => e
     e
   end
 
   def anomaly(datum)
-    jubatus = Jubatus::Anomaly::Client::Anomaly.new(@host, @port.to_i)
+    jubatus = Jubatus::Anomaly::Client::Anomaly.new(@host, @port.to_i, @name)
     result = jubatus.add(@name, datum)
-    jubatus.get_client.close()
+    jubatus.get_client.close
     result
   rescue => e
     e
