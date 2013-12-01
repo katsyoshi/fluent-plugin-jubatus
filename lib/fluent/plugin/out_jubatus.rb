@@ -14,6 +14,8 @@ class JubatusOutput < Output
     super
     require 'jubatus/classifier/client'
     require 'jubatus/classifier/types'
+    require 'jubatus/clustering/client'
+    require 'jubatus/clustering/types'
     require 'jubatus/anomaly/client'
     require 'jubatus/anomaly/types'
     require 'jubatus/recommender/client'
@@ -75,18 +77,12 @@ class JubatusOutput < Output
   end
 
   def set_datum(data)
-    str = []
-    num = []
+    datum = {}
     data.each do |key, value|
-      str << [key, value.to_s] if @str.include?(key)
-      num << [key, value.to_f] if @num.include?(key)
+      datum[key.to_s] = value.to_s if @str.include?(key)
+      datum[key.to_s] = value.to_f if @num.include?(key)
     end
-    case
-    when @client_api =~ /^classif(y|ier)$/i
-      Jubatus::Classifier::Datum.new(str, num)
-    when @client_api =~ /^anomaly$/i
-      Jubatus::Anomaly::Datum.new(str, num)
-    end
+    Jubatus::Common::Datum.new(datum)
   end
 
   def result_format(data)
