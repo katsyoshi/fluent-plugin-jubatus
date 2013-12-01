@@ -14,8 +14,6 @@ class JubatusOutput < Output
     super
     require 'jubatus/classifier/client'
     require 'jubatus/classifier/types'
-    require 'jubatus/clustering/client'
-    require 'jubatus/clustering/types'
     require 'jubatus/anomaly/client'
     require 'jubatus/anomaly/types'
     require 'jubatus/recommender/client'
