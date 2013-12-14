@@ -32,7 +32,7 @@ class JubatusOutput < Output
 
   def emit(tag, es, chain)
     es.each do |time, record|
-      result = result_format(jubatus_run(record))
+      result = result_format(@client_api, jubatus_run(record))
       Engine.emit(@tag, time, result)
     end
 
@@ -44,12 +44,13 @@ class JubatusOutput < Output
     count = 0
     jubatus = FluentdJubatus.new(@client_api, @host, @port, @name)
     begin
-      jubatus = FluentdJubatus.new(@client_api, @host, @port, @name) if count > 0
-      datum = jubatus.set_datum(@client_api, data)
-      if @learn_analyze =~ /^analyze$/i
+      datum = jubatus.set_datum(data, @keys)
+      case @learn_analyze
+      when /^analyze$/i
         jubatus.analyze(@client_api, datum)
-      elsif @learn_analyze =~ /^train$/i
-        jubatus.update(@client_api, datum)
+      when /^train$/i
+        # todo
+        # jubatus.learn(@client_api, datum)
       end
     rescue MessagePack::RPC::ConnectionTimeoutError => e
       jubatus.close
@@ -63,6 +64,7 @@ class JubatusOutput < Output
   end
 
   def result_format(type, result)
+    FluentdJubatus.fix_result(type, result)
   end
 end
 end

@@ -43,11 +43,11 @@ class FluentdJubatus
     @jubatus.get_client.close
   end
 
-  def learn(type, datum)
+  def learn(type, datum, key = nil)
     # todo
   end
 
-  def fix_result(type, result)
+  def self.fix_result(type, result)
     case type
     when /anomaly/i
       fix_anomaly(result)
@@ -60,23 +60,39 @@ class FluentdJubatus
     end
   end
 
-
   def fix_anomaly(result)
+    result
   end
 
   def fix_classifier(results)
-    r = {}
+    r = []
     results.each do |result|
+      est = {}
       result.each do |res|
-        r[res.id] = res.score
+        est[res.id] = res.score
       end
+      r << est
     end
     r
   end
 
-  def fix_clustering(result)
+  def fix_clustering(results)
+    r = []
+    results.each do |result|
+      clustering_result = {}
+      result.each do |res|
+        clustering_result[res.id] = res.score
+      end
+      r << clustering_result
+    end
+    r
   end
 
-  def fix_recommender(result)
+  def fix_recommender(results)
+    result = {}
+    results.each do |r|
+      result[r.id] = r.score
+    end
+    result
   end
 end
