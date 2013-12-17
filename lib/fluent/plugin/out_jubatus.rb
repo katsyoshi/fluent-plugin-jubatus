@@ -17,8 +17,8 @@ class JubatusOutput < Output
 
   def configure(conf)
     super
-    str = @str_keys.split(/,/).map{|str| str.strip}
-    num = @num_keys.split(/,/).map{|num| num.strip}
+    str = @str_keys.split(/,/).map{|key| key.strip }
+    num = @num_keys.split(/,/).map{|key| key.strip }
     @keys = {str: str, num: num}
   end
 
@@ -48,7 +48,7 @@ class JubatusOutput < Output
       case @learn_analyze
       when /^analyze$/i
         jubatus.analyze(@client_api, datum)
-      when /^train$/i
+      when /^learn$/i
         # todo
         # jubatus.learn(@client_api, datum)
       end
