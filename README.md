@@ -1,4 +1,4 @@
-# Fluent::Plugin::Jubatus
+# Fluent::Plugin::Jubatus, a plugin for [Fluentd](http://fluentd.org)
 
 fluentd pluing for jubatus
 
