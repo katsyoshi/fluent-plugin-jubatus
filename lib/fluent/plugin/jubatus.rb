@@ -10,15 +10,15 @@ require 'jubatus/recommender/types'
 class FluentdJubatus
   def initialize(type, host, port, name='')
     @jubatus = case type
-               when /anomaly/i
-                 Jubatus::Anomaly::Client::Anomaly.new(host, port, name)
-               when /classifier/i
-                 Jubatus::Classifier::Client::Classifier.new(host, port, name)
-               when /clustering/i
-                 Jubatus::Clustering::Client::Clustering.new(host, port, name)
-               when /recommender/i
-                 Jubatus::Recommender::Client::Recommender.new(host, port, name)
-               end
+      when /anomaly/i
+        Jubatus::Anomaly::Client::Anomaly.new(host, port, name)
+      when /classifier/i
+        Jubatus::Classifier::Client::Classifier.new(host, port, name)
+      when /clustering/i
+        Jubatus::Clustering::Client::Clustering.new(host, port, name)
+      when /recommender/i
+        Jubatus::Recommender::Client::Recommender.new(host, port, name)
+      end
   end
 
   def set_datum(data, keys)

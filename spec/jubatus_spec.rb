@@ -1,19 +1,19 @@
 require File.expand_path(__dir__ + '/spec_helper')
 
 describe FluentdJubatus do
-  let(:fluent_conf){ {host: '127.0.0.1', port: 9199, name: ''} }
-  let(:data){ {a: 'a', b: '1', c: '1.0', d: '-1.0', e: 'f', f: '1,', g: 'str'} }
-  let(:keys){ {str:['a','e'], num:['b','c','d']} }
-  let(:label){ 'fluentd' }
-  let(:jubatus){
+  let(:fluent_conf) { {host: '127.0.0.1', port: 9199, name: ''} }
+  let(:data) { {a: 'a', b: '1', c: '1.0', d: '-1.0', e: 'f', f: '1,', g: 'str'} }
+  let(:keys) { {str:['a','e'], num:['b','c','d']} }
+  let(:label) { 'fluentd' }
+  let(:jubatus) {
     described_class.new(type, fluent_conf[:host], fluent_conf[:port], fluent_conf[:name])
   }
-  let(:datum){ jubatus.set_datum(data, keys) }
-  let(:raw_jubatus){ jubatus.instance_variable_get(:@jubatus) }
-  let(:result){ described_class.fix_result(type, jubatus.analyze(type, datum)) }
-  let(:log){ File.expand_path(__dir__) }
+  let(:datum) { jubatus.set_datum(data, keys) }
+  let(:raw_jubatus) { jubatus.instance_variable_get(:@jubatus) }
+  let(:result) { described_class.fix_result(type, jubatus.analyze(type, datum)) }
+  let(:log) { File.expand_path(__dir__) }
   # This test run only in ubuntu or debian using deb package
-  let(:ubuntu){ "/opt/jubatus/share/jubatus/example/config/#{type}" }
+  let(:ubuntu) { "/opt/jubatus/share/jubatus/example/config/#{type}" }
 
   def startup(path, jubatus_type: type, config_path: path, jubatus_log: log, jubatus_port: fluent_conf[:port])
     @pid = spawn("juba#{jubatus_type} -f #{config_path} -l #{jubatus_log} -p #{jubatus_port}")
@@ -29,13 +29,16 @@ describe FluentdJubatus do
   end
 
   context 'anomaly' do
-    let(:type){ 'anomaly' }
+    let(:type) { 'anomaly' }
 
-    before{
+    before do
       startup(ubuntu+'/lof.json')
       raw_jubatus.update(label, datum)
-    }
-    after{ stop_jubatus }
+    end
+
+    after do
+      stop_jubatus
+    end
 
     it 'analyze' do
       expect(jubatus.analyze(type, datum)).to eq(1.to_f)
@@ -47,15 +50,16 @@ describe FluentdJubatus do
   end
 
   context 'classifier' do
-    let(:type){ 'classifier' }
+    let(:type) { 'classifier' }
 
-    before{
+    before do
       startup(ubuntu+'/arow.json')
       raw_jubatus.train([[label,datum]])
-    }
-    after {
+    end
+
+    after do
       stop_jubatus
-    }
+    end
 
     it 'analyze' do
       expect(jubatus.analyze(type, datum).first.first.label).to eq(label)
@@ -67,16 +71,18 @@ describe FluentdJubatus do
   end
 
   context 'clustering' do
-    let(:type){ 'clustering' }
-    before{
+    let(:type) { 'clustering' }
+
+    before do
       startup(ubuntu+'/kmeans.json')
       1000.times do
         raw_jubatus.push([datum])
       end
-    }
-    after {
+    end
+
+    after do
       stop_jubatus
-    }
+    end
 
     it 'analyze' do
       expect(jubatus.analyze(type, datum)).to be_true
@@ -89,15 +95,16 @@ describe FluentdJubatus do
   end
 
   context 'recommender' do
-    let(:type){ 'recommender' }
+    let(:type) { 'recommender' }
 
-    before{
+    before do
       startup(ubuntu+'/inverted_index.json')
       raw_jubatus.update_row(label,datum)
-    }
-    after {
+    end
+
+    after do
       stop_jubatus
-    }
+    end
 
     it 'analyze' do
       expect(jubatus.analyze(type, datum).first.score).to eq(1)
