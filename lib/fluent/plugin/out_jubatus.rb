@@ -12,18 +12,14 @@ class JubatusOutput < Output
 
   def initialize
     super
-    require 'jubatus/classifier/client'
-    require 'jubatus/classifier/types'
-    require 'jubatus/anomaly/client'
-    require 'jubatus/anomaly/types'
-    require 'jubatus/recommender/client'
-    require 'jubatus/recommender/types'
+    require 'fluent/plugin/jubatus'
   end
 
   def configure(conf)
     super
-    @str = @str_keys.split(/,/).map{|str| str.strip}
-    @num = @num_keys.split(/,/).map{|num| num.strip}
+    str = @str_keys.split(/,/).map{|key| key.strip }
+    num = @num_keys.split(/,/).map{|key| key.strip }
+    @keys = {str: str, num: num}
   end
 
   def start
@@ -36,7 +32,7 @@ class JubatusOutput < Output
 
   def emit(tag, es, chain)
     es.each do |time, record|
-      result = result_format(jubatus_run(record))
+      result = result_format(@client_api, jubatus_run(record))
       Engine.emit(@tag, time, result)
     end
 
@@ -45,85 +41,30 @@ class JubatusOutput < Output
 
   private
   def jubatus_run(data)
-    datum = set_datum(data)
-    if @learn_analyze =~ /^analyze$/i
-      analyze(datum)
-    elsif @learn_analyze =~ /^train$/i
-      update(datum)
-    end
-  end
-
-  def analyze(datum)
-    case
-    when @client_api =~ /^classif(y|ier)$/i
-      classify(datum)
-    when @client_api =~ /^anomaly$/i
-      anomaly(datum)
-    when @client_api =~ /^recommender/i
-      recommend(datum)
-    end
-  rescue => e
-    e
-  end
-
-  def update(datum)
-    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i, @name)
-    jubatus.train(@name, [datum])
-    jubatus.get_client.close
-  rescue => e
-    e
-  end
-
-  def set_datum(data)
-    datum = {}
-    data.each do |key, value|
-      datum[key.to_s] = value.to_s if @str.include?(key)
-      datum[key.to_s] = value.to_f if @num.include?(key)
-    end
-    Jubatus::Common::Datum.new(datum)
-  end
-
-  def result_format(data)
-    case
-    when @client_api =~ /^classifier$/i
-      result_classify(data)
-    when @client_api =~ /^anomaly$/i
-      result_anomaly(data)
-    end
-  end
-
-  def classify(datum)
-    jubatus = Jubatus::Classifier::Client::Classifier.new(@host, @port.to_i, @name)
-    result = jubatus.classify(@name, [datum])
-    jubatus.get_client.close
-    result
-  rescue => e
-    e
-  end
-
-  def anomaly(datum)
-    jubatus = Jubatus::Anomaly::Client::Anomaly.new(@host, @port.to_i, @name)
-    result = jubatus.add(@name, datum)
-    jubatus.get_client.close
-    result
-  rescue => e
-    e
-  end
-
-  def result_classify(data)
-    result = {}
-    data.map do |datum|
-      datum.map do |est|
-        result[est[0]] = est[1]
+    count = 0
+    jubatus = FluentdJubatus.new(@client_api, @host, @port, @name)
+    begin
+      datum = jubatus.set_datum(data, @keys)
+      case @learn_analyze
+      when /^analyze$/i
+        jubatus.analyze(@client_api, datum)
+      when /^learn$/i
+        # todo
+        # jubatus.learn(@client_api, datum)
       end
+    rescue MessagePack::RPC::ConnectionTimeoutError => e
+      jubatus.close
+      count += 1
+      raise e if count > 10
+      sleep 0.1
+      retry
+    rescue => e
+      e
     end
-    result
   end
 
-  def result_anomaly(data)
-    value = data[1]
-    value = data[1].to_s if data[1].to_s == "Infinity"
-    { id: data[0], value: value }
+  def result_format(type, result)
+    FluentdJubatus.fix_result(type, result)
   end
 end
 end
