@@ -3,7 +3,7 @@ $:.push File.expand_path('../lib', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name          = "fluent-plugin-jubatus"
-  gem.version       = "0.0.1"
+  gem.version       = "0.0.2"
   gem.authors       = ["MATSUMOTO Katsuyoshi"]
   gem.email         = ["matsumoto.katsuyoshi+rubygems@gmail.com"]
   gem.description   = %q{Jubatus output plugin for fluentd}
