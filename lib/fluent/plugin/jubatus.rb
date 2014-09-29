@@ -60,7 +60,7 @@ class FluentdJubatus
     when /clustering/i
       fix_clustering(result)
     when /recommender/i
-      fix_clustering(result)
+      fix_recommender(result)
     end
   end
 
