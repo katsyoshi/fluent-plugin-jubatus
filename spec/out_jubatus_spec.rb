@@ -46,7 +46,6 @@ describe Fluent::JubatusOutput do
     let(:classifier){ fluend.configure(config) }
     let(:data){ {first: '10', second: 10, third: "abcd", ichi: 1, ni: "-2", san: '3.0'} }
     it 'emit' do
-      
     end
   end
 end

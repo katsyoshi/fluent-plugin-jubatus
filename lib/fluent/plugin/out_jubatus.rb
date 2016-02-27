@@ -40,11 +40,12 @@ class JubatusOutput < Output
   end
 
   private
+
   def jubatus_run(data)
     count = 0
-    jubatus = FluentdJubatus.new(@client_api, @host, @port, @name)
+    jubatus = FluentdJubatus.new(@client_api, host: @host, port: @port, name: @name)
     begin
-      datum = jubatus.set_datum(data, @keys)
+      datum = jubatus.to_datum(data, @keys)
       case @learn_analyze
       when /^analyze$/i
         jubatus.analyze(@client_api, datum)
