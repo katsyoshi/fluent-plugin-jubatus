@@ -8,20 +8,16 @@ require 'jubatus/recommender/client'
 require 'jubatus/recommender/types'
 
 class FluentdJubatus
-  def initialize(type, host, port, name='')
+  def initialize(type, host: 'localhost', port: '9199', name: '')
     @jubatus = case type
-      when /anomaly/i
-        Jubatus::Anomaly::Client::Anomaly.new(host, port, name)
-      when /classifier/i
-        Jubatus::Classifier::Client::Classifier.new(host, port, name)
-      when /clustering/i
-        Jubatus::Clustering::Client::Clustering.new(host, port, name)
-      when /recommender/i
-        Jubatus::Recommender::Client::Recommender.new(host, port, name)
+      when /anomaly/i then Jubatus::Anomaly::Client::Anomaly.new(host, port, name)
+      when /classifier/i then Jubatus::Classifier::Client::Classifier.new(host, port, name)
+      when /clustering/i then Jubatus::Clustering::Client::Clustering.new(host, port, name)
+      when /recommender/i then Jubatus::Recommender::Client::Recommender.new(host, port, name)
       end
   end
 
-  def set_datum(data, keys)
+  def to_datum(data, keys)
     datum = {}
     data.each do |k,v|
       datum[k.to_s] = v.to_f if keys[:num].include?(k.to_s)
@@ -30,16 +26,12 @@ class FluentdJubatus
     Jubatus::Common::Datum.new(datum)
   end
 
-  def analyze(type, datum, num = 10)
+  def analyze(type, datum, num: 10)
     case type
-    when /anomaly/i
-      @jubatus.calc_score(datum)
-    when /classifier/i
-      @jubatus.classify([datum])
-    when /clustering/i
-      @jubatus.get_nearest_members(datum)
-    when /recommender/i
-      @jubatus.similar_row_from_datum(datum, num)
+    when /anomaly/i then @jubatus.calc_score(datum)
+    when /classifier/i then @jubatus.classify([datum])
+    when /clustering/i then @jubatus.get_nearest_members(datum)
+    when /recommender/i then @jubatus.similar_row_from_datum(datum, num)
     end
   end
 
@@ -47,53 +39,43 @@ class FluentdJubatus
     @jubatus.get_client.close
   end
 
-  def learn(type, datum, key = nil)
-    # todo
+  def learn(type, datum, key: nil)
+    # TODO
   end
 
-  def self.fix_result(type, result)
-    case type
-    when /anomaly/i
-      fix_anomaly(result)
-    when /classifier/i
-      fix_classifier(result)
-    when /clustering/i
-      fix_clustering(result)
-    when /recommender/i
-      fix_recommender(result)
-    end
-  end
-
-  private
-  def self.fix_anomaly(result)
-    result
-  end
-
-  def self.fix_classifier(results)
-    r = []
-    results.each do |result|
-      est = {}
-      result.each do |res|
-        est[res.label] = res.score
+  class << self
+    def fix_result(type, result)
+      case type
+      when /anomaly/i then fix_anomaly(result)
+      when /classifier/i then fix_classifier(result)
+      when /clustering/i then fix_clustering(result)
+      when /recommender/i then fix_recommender(result)
       end
-      r << est
     end
-    r
-  end
 
-  def self.fix_clustering(results)
-    r = {}
-    results.each do |result|
-      r[result.id] = result.score
-    end
-    r
-  end
+    private
 
-  def self.fix_recommender(results)
-    result = {}
-    results.each do |r|
-      result[r.id] = r.score
+    def fix_anomaly(result)
+      result
     end
-    result
+
+    def fix_classifier(results)
+      results.map do |result|
+        est = {}
+        result.each{|res| est[res.label] = res.score}
+      end
+    end
+
+    def fix_clustering(results)
+      result = {}
+      results.each{|r| result[r.id] = r.score}
+      result
+    end
+
+    def fix_recommender(results)
+      result = {}
+      results.each{|r| result[r.id] = r.score }
+      result
+    end
   end
 end
