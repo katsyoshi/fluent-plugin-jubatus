@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_dependency 'fluentd'
-  gem.add_dependency 'jubatus'
+  gem.add_dependency 'jubatus', '~> 1.0.0'
   gem.add_development_dependency 'simplecov'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'minitest'

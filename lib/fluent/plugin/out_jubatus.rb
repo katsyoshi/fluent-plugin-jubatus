@@ -1,6 +1,12 @@
 module Fluent
 class JubatusOutput < Output
   Plugin.register_output('jubatus', self)
+
+  # To support Fluentd v0.10.57 or earlier
+  unless method_defined?(:router)
+    define_method("router") { Fluent::Engine }
+  end
+
   config_param :client_api, :string, :default => 'classifier'
   config_param :host, :string, :default => '127.0.0.1'
   config_param :port, :string, :default => '9199'
@@ -33,7 +39,7 @@ class JubatusOutput < Output
   def emit(tag, es, chain)
     es.each do |time, record|
       result = result_format(@client_api, jubatus_run(record))
-      Engine.emit(@tag, time, result)
+      router.emit(@tag, time, result)
     end
 
     chain.next
